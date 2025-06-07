@@ -1,0 +1,333 @@
+{% extends "admin/base.html" %}
+
+{% block title %}内容管理 - 职场分享社区{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.admin_index') }}">首页</a></li>
+        <li class="breadcrumb-item active">内容管理</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-file-alt me-2"></i>内容管理</h2>
+            <a href="{{ url_for('main.admin_create_post') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>发布新内容
+        </a>
+</div>
+
+<!-- 筛选器 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">分类</label>
+                <select name="category_id" class="form-select">
+                    <option value="">全部分类</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" 
+                            {% if current_category == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">状态</label>
+                <select name="status" class="form-select">
+                    <option value="published" {% if current_status == 'published' %}selected{% endif %}>已发布</option>
+                    <option value="draft" {% if current_status == 'draft' %}selected{% endif %}>草稿</option>
+                    <option value="hidden" {% if current_status == 'hidden' %}selected{% endif %}>已隐藏</option>
+                    <option value="" {% if not current_status %}selected{% endif %}>全部状态</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">搜索</label>
+                <input type="text" name="keyword" class="form-control" placeholder="搜索标题或内容..." 
+                       value="{{ request.args.get('keyword', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fas fa-search me-1"></i>筛选
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 内容列表 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>内容列表</span>
+        {% if pagination %}
+        <small class="text-muted">
+            共 {{ pagination.total }} 条记录，第 {{ pagination.page }} / {{ pagination.pages }} 页
+        </small>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        {% if pagination and pagination.items %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="5%">ID</th>
+                        <th width="30%">标题/内容</th>
+                        <th width="10%">分类</th>
+                        <th width="15%">媒体</th>
+                        <th width="10%">统计</th>
+                        <th width="8%">状态</th>
+                        <th width="12%">发布时间</th>
+                        <th width="10%">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for post in pagination.items %}
+                    <tr>
+                        <td>{{ post.id }}</td>
+                        <td>
+                            <div>
+                                <div class="fw-bold">
+                                    {% if post.title %}
+                                        {{ post.title[:50] }}{% if post.title|length > 50 %}...{% endif %}
+                                    {% else %}
+                                        <span class="text-muted">[无标题]</span>
+                                    {% endif %}
+                                    
+                                    <!-- 置顶和精选标识 -->
+                                    {% if post.is_top %}
+                                    <span class="badge bg-danger ms-1">置顶</span>
+                                    {% endif %}
+                                    {% if post.is_featured %}
+                                    <span class="badge bg-warning ms-1">精选</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if post.content %}
+                                <small class="text-muted">
+                                    {{ post.content[:100] }}{% if post.content|length > 100 %}...{% endif %}
+                                </small>
+                                {% endif %}
+                                
+                                <!-- 话题标签 -->
+                                {% set post_detail = get_post_details_for_template(post.id) %}
+                                {% if post_detail and post_detail.topics %}
+                                <div class="mt-1">
+                                    {% for topic in post_detail.topics %}
+                                    <span class="topic-tag" style="background-color: {{ topic.color or '#007bff' }}20; color: {{ topic.color or '#007bff' }};">
+                                        #{{ topic.name }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if post.category %}
+                            <span class="badge" style="background-color: {{ post.category.color }};">
+                                {{ post.category.name }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if post_detail and post_detail.media_files %}
+                                {% set images = post_detail.media_files|selectattr('media_type', 'equalto', 'image')|list %}
+                                {% set videos = post_detail.media_files|selectattr('media_type', 'equalto', 'video')|list %}
+                                
+                                {% if images %}
+                                <small class="d-block"><i class="fas fa-image text-success"></i> {{ images|length }} 张图片</small>
+                                {% endif %}
+                                {% if videos %}
+                                <small class="d-block"><i class="fas fa-video text-primary"></i> {{ videos|length }} 个视频</small>
+                                {% endif %}
+                                
+                                {% if post.link_url %}
+                                <small class="d-block"><i class="fas fa-link text-info"></i> 链接分享</small>
+                                {% endif %}
+                            {% else %}
+                                {% if post.link_url %}
+                                <small><i class="fas fa-link text-info"></i> 链接分享</small>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="d-block">
+                                <i class="fas fa-eye text-muted"></i> {{ post.view_count }}
+                            </small>
+                            <small class="d-block">
+                                <i class="fas fa-heart text-danger"></i> {{ post.like_count }}
+                            </small>
+                            <small class="d-block">
+                                <i class="fas fa-comment text-primary"></i> {{ post.comment_count }}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge status-{{ post.status }}">
+                                {% if post.status == 'published' %}已发布
+                                {% elif post.status == 'draft' %}草稿
+                                {% elif post.status == 'hidden' %}已隐藏
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <small>{{ post.published_at.strftime('%Y-%m-%d %H:%M') if post.published_at else '-' }}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('main.admin_edit_post', post_id=post.id) }}" 
+                                   class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" 
+                                        onclick="deletePost({{ post.id }})" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 分页 -->
+        {% if pagination.pages > 1 %}
+        <div class="card-footer">
+            <nav aria-label="分页导航">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.admin_posts', page=pagination.prev_num, 
+                                                             category_id=current_category, status=current_status) }}">
+                            上一页
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != pagination.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.admin_posts', page=page_num, 
+                                                                     category_id=current_category, status=current_status) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.admin_posts', page=pagination.next_num, 
+                                                             category_id=current_category, status=current_status) }}">
+                            下一页
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">暂无内容</h5>
+            <p class="text-muted">点击上方按钮开始发布第一条内容吧！</p>
+            <a href="{{ url_for('main.admin_create_post') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>发布新内容
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 删除内容
+function deletePost(postId) {
+    if (!confirm('确定要删除这条内容吗？删除后无法恢复！\n\n注意：相关的媒体文件也会被一并删除。')) {
+        return;
+    }
+    
+    showLoading('正在删除内容和相关文件...');
+    
+    fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.code === 0) {
+            let message = data.data.message;
+            
+            // 显示文件删除详情
+            if (data.data.deleted_files > 0 || data.data.failed_files > 0) {
+                message += `\n\n文件删除情况：`;
+                if (data.data.deleted_files > 0) {
+                    message += `\n✓ 成功删除 ${data.data.deleted_files} 个文件`;
+                }
+                if (data.data.failed_files > 0) {
+                    message += `\n⚠ ${data.data.failed_files} 个文件删除失败`;
+                }
+            }
+            
+            // 如果有警告信息，显示警告样式
+            const messageType = data.data.warning ? 'warning' : 'success';
+            showMessage(message, messageType);
+            
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            showMessage(data.errorMsg || '删除失败', 'danger');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showMessage('删除失败：' + error.message, 'danger');
+    });
+}
+
+// 批量操作
+function batchAction(action) {
+    const checkboxes = document.querySelectorAll('input[name="post_ids"]:checked');
+    if (checkboxes.length === 0) {
+        showMessage('请选择要操作的内容', 'warning');
+        return;
+    }
+    
+    const postIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (!confirm(`确定要${action}选中的 ${postIds.length} 条内容吗？`)) {
+        return;
+    }
+    
+    // 这里可以实现批量操作的逻辑
+    showMessage('批量操作功能开发中...', 'info');
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,689 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+{% if post_data %}编辑内容{% else %}发布新内容{% endif %} - 职场分享社区
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.admin_index') }}">首页</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('main.admin_posts') }}">内容管理</a></li>
+        <li class="breadcrumb-item active">
+            {% if post_data %}编辑内容{% else %}发布新内容{% endif %}
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-{% if post_data %}edit{% else %}plus{% endif %} me-2"></i>
+        {% if post_data %}编辑内容{% else %}发布新内容{% endif %}
+    </h2>
+    <a href="{{ url_for('main.admin_posts') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>返回列表
+    </a>
+</div>
+
+<!-- 加载状态 -->
+<div class="loading text-center py-5" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">加载中...</span>
+    </div>
+    <p class="mt-2">正在保存...</p>
+</div>
+
+<!-- 编辑表单 -->
+<form id="postForm" class="row">
+    <!-- 左侧主要内容 -->
+    <div class="col-md-6 col-lg-6">
+        <!-- 基本信息 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-edit me-2"></i>基本信息
+            </div>
+            <div class="card-body">
+                <!-- 标题 -->
+                <div class="mb-3">
+                    <label for="title" class="form-label">标题 <small class="text-muted">(可选)</small></label>
+                    <input type="text" class="form-control" id="title" name="title" 
+                           placeholder="输入内容标题..." maxlength="200"
+                           value="{% if post_data %}{{ post_data.post.title or '' }}{% endif %}">
+                    <div class="form-text">标题可以为空，适合纯图片或视频分享</div>
+                </div>
+                
+                <!-- 内容 -->
+                <div class="mb-3">
+                    <label for="content" class="form-label">内容 <small class="text-muted">(可选)</small></label>
+                    <textarea class="form-control" id="content" name="content" rows="12" 
+                              placeholder="输入内容...支持多行文本">{% if post_data %}{{ post_data.post.content or '' }}{% endif %}</textarea>
+                    <div class="form-text">支持多行文本输入，可以输入大量文字</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 媒体文件 -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-images me-2"></i>媒体文件</span>
+                <div>
+                    <input type="file" id="fileInput" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx" style="display: none;" onchange="handleFileSelect(event)">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-upload me-1"></i>上传文件
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="mediaContainer">
+                    <!-- 媒体文件列表将在这里动态生成 -->
+                </div>
+                <div class="text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    支持图片、视频、音频、文档等文件，最多9个文件
+                </div>
+            </div>
+        </div>
+        
+        <!-- 链接分享 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-link me-2"></i>链接分享 <small class="text-muted">(可选)</small>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="link_url" class="form-label">链接地址</label>
+                    <input type="url" class="form-control" id="link_url" name="link_url" 
+                           placeholder="https://example.com"
+                           value="{% if post_data %}{{ post_data.post.link_url or '' }}{% endif %}">
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="link_title" class="form-label">链接标题</label>
+                            <input type="text" class="form-control" id="link_title" name="link_title" 
+                                   placeholder="链接标题"
+                                   value="{% if post_data %}{{ post_data.post.link_title or '' }}{% endif %}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="link_favicon" class="form-label">链接图标</label>
+                            <input type="url" class="form-control" id="link_favicon" name="link_favicon" 
+                                   placeholder="https://example.com/favicon.ico"
+                                   value="{% if post_data %}{{ post_data.post.link_favicon or '' }}{% endif %}">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="link_description" class="form-label">链接描述</label>
+                    <textarea class="form-control" id="link_description" name="link_description" 
+                              rows="3" placeholder="链接描述">{% if post_data %}{{ post_data.post.link_description or '' }}{% endif %}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 右侧设置 -->
+    <div class="col-md-6 col-lg-6">
+        <!-- 发布设置 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-cog me-2"></i>发布设置
+            </div>
+            <div class="card-body">
+                <!-- 分类 -->
+                <div class="mb-3">
+                    <label for="category_id" class="form-label">分类</label>
+                    <select class="form-select" id="category_id" name="category_id">
+                        <option value="">选择分类</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" 
+                                {% if post_data and post_data.post.category_id == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- 状态 -->
+                <div class="mb-3">
+                    <label for="status" class="form-label">状态</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="published" 
+                                {% if not post_data or post_data.post.status == 'published' %}selected{% endif %}>
+                            已发布
+                        </option>
+                        <option value="draft" 
+                                {% if post_data and post_data.post.status == 'draft' %}selected{% endif %}>
+                            草稿
+                        </option>
+                        <option value="hidden" 
+                                {% if post_data and post_data.post.status == 'hidden' %}selected{% endif %}>
+                            已隐藏
+                        </option>
+                    </select>
+                </div>
+                
+                <!-- 特殊标记 -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" 
+                               {% if post_data and post_data.post.is_featured %}checked{% endif %}>
+                        <label class="form-check-label" for="is_featured">
+                            <i class="fas fa-star text-warning me-1"></i>精选内容
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_top" name="is_top" 
+                               {% if post_data and post_data.post.is_top %}checked{% endif %}>
+                        <label class="form-check-label" for="is_top">
+                            <i class="fas fa-thumbtack text-danger me-1"></i>置顶显示
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 话题标签 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-hashtag me-2"></i>话题标签
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="topics" class="form-label">话题标签</label>
+                    <input type="text" class="form-control" id="topics" name="topics" 
+                           placeholder="输入话题，用逗号分隔，如：职场技能,工作效率"
+                           value="{% if post_data %}{{ post_data.topics|map(attribute='name')|join(',') }}{% endif %}">
+                    <div class="form-text">用逗号分隔多个话题，如：职场技能,工作效率</div>
+                </div>
+                
+                <!-- 热门话题 -->
+                {% if hot_topics %}
+                <div class="mb-3">
+                    <label class="form-label">热门话题</label>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for topic in hot_topics %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary topic-btn" 
+                                data-topic="{{ topic.name }}" style="border-color: {{ topic.color }}; color: {{ topic.color }};">
+                            #{{ topic.name }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <div class="form-text">点击添加到话题标签</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save me-1"></i>
+                        {% if post_data %}更新内容{% else %}发布内容{% endif %}
+                    </button>
+                    
+                    {% if post_data %}
+                    <button type="button" class="btn btn-outline-secondary" onclick="previewPost()">
+                        <i class="fas fa-eye me-1"></i>预览
+                    </button>
+                    {% endif %}
+                    
+                    <button type="button" class="btn btn-outline-danger" onclick="saveDraft()">
+                        <i class="fas fa-file-alt me-1"></i>保存草稿
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* 强制左右布局 */
+#postForm {
+    display: flex !important;
+    flex-wrap: wrap !important;
+}
+
+@media (min-width: 768px) {
+    #postForm .col-md-6:first-child {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        float: left !important;
+    }
+    
+    #postForm .col-md-6:last-child {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        float: right !important;
+    }
+    
+    /* 确保右侧内容不会换行 */
+    #postForm .col-md-6 .card {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* 在小屏幕上堆叠显示 */
+@media (max-width: 767px) {
+    #postForm .col-md-6 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+.media-item {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+}
+
+.media-preview {
+    max-width: 200px;
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: 0.25rem;
+}
+
+.topic-btn:hover {
+    background-color: var(--bs-primary);
+    color: white !important;
+    border-color: var(--bs-primary) !important;
+}
+
+
+
+.drag-over {
+    border-color: #667eea !important;
+    background-color: #667eea10 !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let mediaFiles = [];
+let isEditing = {% if post_data %}true{% else %}false{% endif %};
+let postId = {% if post_data %}{{ post_data.post.id }}{% else %}null{% endif %};
+
+// 页面特定的加载状态控制
+function showPageLoading() {
+    const loading = document.querySelector('.loading');
+    const form = document.querySelector('#postForm');
+    if (loading) loading.style.display = 'block';
+    if (form) form.style.display = 'none';
+}
+
+function hidePageLoading() {
+    const loading = document.querySelector('.loading');
+    const form = document.querySelector('#postForm');
+    if (loading) loading.style.display = 'none';
+    if (form) form.style.display = 'block';
+}
+
+
+
+// 初始化页面
+document.addEventListener('DOMContentLoaded', function() {
+    // 加载现有媒体文件
+    {% if post_data and post_data.media_files %}
+    mediaFiles = {{ post_data.media_files|tojson }};
+    renderMediaFiles();
+    {% endif %}
+    
+    // 页面加载完成，隐藏加载状态
+    hidePageLoading();
+});
+
+// 处理文件选择
+function handleFileSelect(event) {
+    const files = event.target.files;
+    if (files.length === 0) return;
+    
+    // 检查文件数量限制
+    if (mediaFiles.length + files.length > 9) {
+        showMessage('最多只能上传9个文件', 'warning');
+        return;
+    }
+    
+    // 上传每个文件
+    Array.from(files).forEach(file => {
+        uploadFile(file);
+    });
+    
+    // 清空文件输入框
+    event.target.value = '';
+}
+
+// 上传文件
+function uploadFile(file) {
+    // 检查文件大小（限制为50MB）
+    if (file.size > 50 * 1024 * 1024) {
+        showMessage(`文件 ${file.name} 太大，请选择小于50MB的文件`, 'warning');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // 创建临时媒体项显示上传进度
+    const tempMediaItem = {
+        id: Date.now(),
+        media_type: getMediaTypeFromFile(file),
+        cloud_id: '',
+        file_name: file.name,
+        file_size: file.size,
+        status: 'uploading',
+        sort_order: mediaFiles.length
+    };
+    
+    mediaFiles.push(tempMediaItem);
+    renderMediaFiles();
+    
+    // 上传文件
+    fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.code === 0) {
+            // 更新媒体项信息
+            const index = mediaFiles.findIndex(item => item.id === tempMediaItem.id);
+            if (index !== -1) {
+                mediaFiles[index] = {
+                    id: tempMediaItem.id,
+                    media_type: data.data.media_type,
+                    cloud_id: data.data.cloud_id,
+                    file_name: data.data.file_name,
+                    file_size: data.data.file_size,
+                    mime_type: data.data.mime_type || data.data.content_type,
+                    status: 'success',
+                    sort_order: index
+                };
+                renderMediaFiles();
+            }
+            showMessage('文件上传成功', 'success');
+        } else {
+            // 移除失败的项
+            const index = mediaFiles.findIndex(item => item.id === tempMediaItem.id);
+            if (index !== -1) {
+                mediaFiles.splice(index, 1);
+                renderMediaFiles();
+            }
+            showMessage(data.errorMsg || '文件上传失败', 'danger');
+        }
+    })
+    .catch(error => {
+        // 移除失败的项
+        const index = mediaFiles.findIndex(item => item.id === tempMediaItem.id);
+        if (index !== -1) {
+            mediaFiles.splice(index, 1);
+            renderMediaFiles();
+        }
+        showMessage('文件上传失败：' + error.message, 'danger');
+    });
+}
+
+// 根据文件类型判断媒体类型
+function getMediaTypeFromFile(file) {
+    const type = file.type;
+    if (type.startsWith('image/')) return 'image';
+    if (type.startsWith('video/')) return 'video';
+    if (type.startsWith('audio/')) return 'audio';
+    return 'document';
+}
+
+// 渲染媒体文件列表
+function renderMediaFiles() {
+    const container = document.getElementById('mediaContainer');
+    
+    if (mediaFiles.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center py-3">暂无媒体文件</p>';
+        return;
+    }
+    
+    container.innerHTML = mediaFiles.map((media, index) => `
+        <div class="media-item" data-index="${index}">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 me-3">
+                    ${getMediaIcon(media.media_type)}
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${media.file_name || '未命名文件'}</h6>
+                            <small class="text-muted">
+                                ${getMediaTypeText(media.media_type)} • ${formatFileSize(media.file_size)}
+                                ${media.status === 'uploading' ? ' • 上传中...' : ''}
+                            </small>
+                        </div>
+                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                onclick="removeMediaFile(${index})" 
+                                ${media.status === 'uploading' ? 'disabled' : ''}>
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    ${media.status === 'uploading' ? `
+                        <div class="progress mt-2" style="height: 4px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 style="width: 100%"></div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// 获取媒体类型图标
+function getMediaIcon(mediaType) {
+    const icons = {
+        'image': '<i class="fas fa-image text-success fa-2x"></i>',
+        'video': '<i class="fas fa-video text-primary fa-2x"></i>',
+        'audio': '<i class="fas fa-music text-warning fa-2x"></i>',
+        'document': '<i class="fas fa-file-alt text-info fa-2x"></i>'
+    };
+    return icons[mediaType] || icons['document'];
+}
+
+// 获取媒体类型文本
+function getMediaTypeText(mediaType) {
+    const texts = {
+        'image': '图片',
+        'video': '视频',
+        'audio': '音频',
+        'document': '文档'
+    };
+    return texts[mediaType] || '文档';
+}
+
+// 格式化文件大小
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+// 删除媒体文件
+function removeMediaFile(index) {
+    if (!confirm('确定要删除这个媒体文件吗？\n\n注意：云存储中的文件也会被永久删除！')) {
+        return;
+    }
+    
+    const mediaFile = mediaFiles[index];
+    console.log('🗑️ 准备删除媒体文件:', mediaFile);
+    
+    // 如果文件还在上传中，直接从数组删除
+    if (mediaFile.status === 'uploading') {
+        console.log('📤 文件正在上传中，直接从列表删除');
+        mediaFiles.splice(index, 1);
+        renderMediaFiles();
+        return;
+    }
+    
+    // 如果有cloud_id，需要调用后端API删除云存储文件
+    if (mediaFile.cloud_id) {
+        console.log('☁️ 调用后端API删除云存储文件:', mediaFile.cloud_id);
+        showLoading('正在删除文件...');
+        
+        // 调用后端删除API
+        fetch('/api/files/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                file_ids: [mediaFile.cloud_id]
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            console.log('📥 删除API响应:', data);
+            
+            if (data.code === 0) {
+                // 后端删除成功，从前端数组删除
+                mediaFiles.splice(index, 1);
+                renderMediaFiles();
+                
+                const result = data.data;
+                if (result.deleted_files > 0) {
+                    showMessage('✅ 文件删除成功', 'success');
+                    console.log('✅ 云存储文件删除成功');
+                } else if (result.failed_files > 0) {
+                    showMessage('⚠️ 文件删除失败，但已从列表移除', 'warning');
+                    console.log('⚠️ 云存储文件删除失败');
+                }
+            } else {
+                // 后端删除失败，但仍然从前端删除（避免界面不一致）
+                mediaFiles.splice(index, 1);
+                renderMediaFiles();
+                showMessage('⚠️ 云存储文件删除失败，但已从列表移除: ' + (data.errorMsg || '未知错误'), 'warning');
+                console.log('❌ 后端删除失败:', data.errorMsg);
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.log('💥 删除请求异常:', error);
+            
+            // 网络错误，但仍然从前端删除
+            mediaFiles.splice(index, 1);
+            renderMediaFiles();
+            showMessage('⚠️ 删除请求失败，但已从列表移除: ' + error.message, 'warning');
+        });
+    } else {
+        // 没有cloud_id，直接从前端删除
+        console.log('📁 没有cloud_id，直接从列表删除');
+        mediaFiles.splice(index, 1);
+        renderMediaFiles();
+        showMessage('文件已从列表移除', 'info');
+    }
+}
+
+// 热门话题点击事件
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('topic-btn')) {
+        const topicName = e.target.dataset.topic;
+        const topicsInput = document.getElementById('topics');
+        const currentTopics = topicsInput.value.split(',').map(t => t.trim()).filter(t => t);
+        
+        if (!currentTopics.includes(topicName)) {
+            currentTopics.push(topicName);
+            topicsInput.value = currentTopics.join(',');
+        }
+    }
+});
+
+// 表单提交
+document.getElementById('postForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    savePost();
+});
+
+// 保存内容
+function savePost() {
+    const formData = new FormData(document.getElementById('postForm'));
+    
+    // 构建数据
+    const postData = {
+        title: formData.get('title'),
+        content: formData.get('content'),
+        category_id: formData.get('category_id') ? parseInt(formData.get('category_id')) : null,
+        link_url: formData.get('link_url'),
+        link_title: formData.get('link_title'),
+        link_description: formData.get('link_description'),
+        link_favicon: formData.get('link_favicon'),
+        status: formData.get('status'),
+        is_featured: formData.get('is_featured') === 'on',
+        is_top: formData.get('is_top') === 'on',
+        topics: formData.get('topics').split(',').map(t => t.trim()).filter(t => t),
+        media_files: mediaFiles.filter(m => m.cloud_id && m.status === 'success')
+    };
+    
+    // 验证
+    if (!postData.title && !postData.content && postData.media_files.length === 0) {
+        showMessage('标题、内容或媒体文件至少填写一项', 'warning');
+        return;
+    }
+    
+    showLoading();
+    
+    const url = isEditing ? `/api/posts/${postId}` : '/api/posts';
+    const method = isEditing ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.code === 0) {
+            showMessage(isEditing ? '更新成功' : '发布成功', 'success');
+            setTimeout(() => {
+                window.location.href = '{{ url_for("main.admin_posts") }}';
+            }, 1500);
+        } else {
+            showMessage(data.errorMsg || '保存失败', 'danger');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showMessage('保存失败：' + error.message, 'danger');
+    });
+}
+
+// 保存草稿
+function saveDraft() {
+    const statusSelect = document.getElementById('status');
+    statusSelect.value = 'draft';
+    savePost();
+}
+
+// 预览内容
+function previewPost() {
+    if (postId) {
+        window.open(`/posts/${postId}`, '_blank');
+    } else {
+        showMessage('请先保存内容', 'warning');
+    }
+}
+</script>
+{% endblock %} 
