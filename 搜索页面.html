@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识分享 - 搜索</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        *::-webkit-scrollbar {
+            display: none;
+        }
+        body {
+            overflow: hidden;
+        }
+        .phone-mockup {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+        .status-bar {
+            height: 44px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .search-header {
+            height: 80px;
+            background: white;
+            padding: 16px 20px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .search-box {
+            background: #f8f9fa;
+            border-radius: 24px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .search-box:focus-within {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+        }
+        .search-input {
+            flex: 1;
+            border: none;
+            background: none;
+            outline: none;
+            font-size: 16px;
+            color: #333;
+        }
+        .search-input::placeholder {
+            color: #999;
+        }
+        .content-area {
+            height: calc(100% - 44px - 80px - 83px);
+            background: white;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .content-area::-webkit-scrollbar {
+            display: none;
+        }
+        .bottom-nav {
+            height: 83px;
+            background: white;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 34px;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .nav-item.active {
+            color: #667eea;
+        }
+        .section-title {
+            padding: 20px 20px 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 0 20px 20px;
+        }
+        .tag {
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid #667eea30;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tag:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .history-text {
+            color: #666;
+            font-size: 15px;
+        }
+        .history-icon {
+            color: #999;
+            font-size: 14px;
+        }
+        .search-result {
+            background: white;
+            border-radius: 16px;
+            margin: 12px 16px;
+            padding: 20px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            border: 1px solid #f5f5f5;
+        }
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .result-type {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .result-time {
+            color: #999;
+            font-size: 12px;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+        }
+        .empty-icon {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 16px;
+        }
+        .empty-text {
+            color: #999;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .empty-subtext {
+            color: #ccc;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="phone-mockup">
+        <div class="screen">
+            <!-- 状态栏 -->
+            <div class="status-bar">
+                <div>9:41</div>
+                <div class="flex items-center gap-1">
+                    <i class="fas fa-signal text-sm"></i>
+                    <i class="fas fa-wifi text-sm"></i>
+                    <i class="fas fa-battery-full text-sm"></i>
+                </div>
+            </div>
+            
+            <!-- 搜索头部 -->
+            <div class="search-header">
+                <div class="search-box">
+                    <i class="fas fa-search text-gray-400"></i>
+                    <input type="text" class="search-input" placeholder="搜索内容标题...">
+                    <i class="fas fa-microphone text-gray-400"></i>
+                </div>
+            </div>
+            
+            <!-- 内容区域 -->
+            <div class="content-area">
+                <!-- 热门搜索 -->
+                <div class="section-title">🔥 热门搜索</div>
+                <div class="tag-list">
+                    <span class="tag">工作效率</span>
+                    <span class="tag">GitHub</span>
+                    <span class="tag">产品设计</span>
+                    <span class="tag">AI工具</span>
+                    <span class="tag">前端开发</span>
+                    <span class="tag">思维导图</span>
+                </div>
+                
+                <!-- 搜索历史 -->
+                <div class="section-title">🕒 搜索历史</div>
+                <div class="history-item">
+                    <span class="history-text">效率工具</span>
+                    <i class="fas fa-times history-icon"></i>
+                </div>
+                <div class="history-item">
+                    <span class="history-text">产品设计</span>
+                    <i class="fas fa-times history-icon"></i>
+                </div>
+                <div class="history-item">
+                    <span class="history-text">编程技巧</span>
+                    <i class="fas fa-times history-icon"></i>
+                </div>
+                
+                <!-- 搜索结果示例（隐藏状态，搜索时显示） -->
+                <div style="display: none;">
+                    <div class="search-result">
+                        <div class="result-header">
+                            <span class="result-type">📝 博客</span>
+                            <span class="result-time">2小时前</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                            提升<span class="highlight">工作效率</span>的10个小技巧
+                        </h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            在快节奏的工作环境中，掌握一些实用的<span class="highlight">效率</span>技巧能让你事半功倍...
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- 空状态 -->
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="empty-text">输入关键词开始搜索</div>
+                    <div class="empty-subtext">支持标题模糊搜索</div>
+                </div>
+            </div>
+            
+            <!-- 底部导航 -->
+            <div class="bottom-nav">
+                <div class="nav-item">
+                    <i class="fas fa-home text-lg"></i>
+                    <span class="text-xs">首页</span>
+                </div>
+                <div class="nav-item active">
+                    <i class="fas fa-search text-lg"></i>
+                    <span class="text-xs">搜索</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

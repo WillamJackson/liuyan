@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "知识分享",
+  "navigationStyle": "custom",
+  "backgroundColor": "#667eea",
+  "enablePullDownRefresh": true
+}

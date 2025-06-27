@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识分享小程序 - UI设计展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .ui-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            justify-items: center;
+        }
+        
+        .page-frame {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .page-frame:hover {
+            transform: translateY(-5px);
+        }
+        
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .page-iframe {
+            width: 400px;
+            height: 850px;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            display: block;
+        }
+        
+        .page-description {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 768px) {
+            .ui-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-iframe {
+                width: 350px;
+                height: 750px;
+            }
+            
+            body {
+                padding: 20px 10px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .header p {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .page-iframe {
+                width: 300px;
+                height: 650px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>知识分享小程序 UI设计</h1>
+            <p>优雅的清新主义美学与功能的完美平衡</p>
+        </div>
+        
+        <div class="ui-grid">
+            <!-- 首页设计 -->
+            <div class="page-frame">
+                <div class="page-title">📱 首页 - 信息流</div>
+                <iframe src="首页.html" class="page-iframe"></iframe>
+                <div class="page-description">
+                    类似聊天记录的时间线浏览方式<br>
+                    支持多种内容类型展示和表情反馈
+                </div>
+            </div>
+            
+            <!-- 搜索页面设计 -->
+            <div class="page-frame">
+                <div class="page-title">🔍 搜索页面</div>
+                <iframe src="搜索页面.html" class="page-iframe"></iframe>
+                <div class="page-description">
+                    智能搜索功能与热门推荐<br>
+                    支持标题模糊搜索和搜索历史
+                </div>
+            </div>
+            
+
+        </div>
+    </div>
+</body>
+</html> 

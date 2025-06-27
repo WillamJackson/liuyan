@@ -1,0 +1,107 @@
+<!--search.wxml-->
+<view class="container">
+  <!-- 状态栏占位 -->
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+  
+  <!-- 搜索头部 -->
+  <view class="search-header">
+    <view class="search-box">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索内容标题..." value="{{searchKeyword}}" bindinput="onSearchInput" bindconfirm="onSearch" confirm-type="search" />
+      <text class="voice-icon" wx:if="{{!searchKeyword}}" bindtap="startVoiceSearch">🎤</text>
+      <text class="clear-icon" wx:else bindtap="clearSearch">✕</text>
+    </view>
+  </view>
+  
+  <!-- 内容区域 -->
+  <scroll-view class="content-area" scroll-y="true" enable-back-to-top="true" scroll-with-animation="true">
+    <!-- 搜索为空时显示 -->
+    <view wx:if="{{!searchKeyword && !isSearching}}" class="search-empty">
+      <!-- 热门搜索 -->
+      <view class="section">
+        <view class="section-title">🔥 热门搜索</view>
+        <view class="tag-list">
+          <view class="tag" wx:for="{{hotTags}}" wx:key="*this" bindtap="searchByTag" data-tag="{{item}}">
+            {{item}}
+          </view>
+        </view>
+      </view>
+      
+      <!-- 搜索历史 -->
+      <view class="section" wx:if="{{searchHistory.length > 0}}">
+        <view class="section-title">🕒 搜索历史</view>
+        <view class="history-list">
+          <view class="history-item" wx:for="{{searchHistory}}" wx:key="*this">
+            <text class="history-text" bindtap="searchByTag" data-tag="{{item}}">{{item}}</text>
+            <text class="history-delete" bindtap="deleteHistory" data-index="{{index}}">✕</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 空状态 -->
+      <view class="empty-state">
+        <view class="empty-icon">🔍</view>
+        <view class="empty-text">输入关键词开始搜索</view>
+        <view class="empty-subtext">支持标题模糊搜索</view>
+      </view>
+    </view>
+    
+    <!-- 搜索结果 -->
+    <view wx:if="{{searchKeyword && searchResults.length > 0}}" class="search-results">
+      <view class="result-count">找到 {{searchResults.length}} 条相关内容</view>
+      
+      <view class="content-card" wx:for="{{searchResults}}" wx:key="id">
+        <!-- 卡片头部 -->
+        <view class="content-header">
+          <view class="content-type">{{item.typeIcon}} {{item.typeName}}</view>
+          <view class="content-time">{{item.timeText}}</view>
+        </view>
+        
+        <!-- 标题（高亮关键词） -->
+        <rich-text class="content-title" nodes="{{item.highlightTitle}}"></rich-text>
+        
+        <!-- 正文内容（高亮关键词） -->
+        <rich-text class="content-text" nodes="{{item.highlightContent}}"></rich-text>
+        
+        <!-- 链接卡片（如果有） -->
+        <view class="link-card" wx:if="{{item.linkUrl}}" bindtap="openLink" data-url="{{item.linkUrl}}">
+          <view class="link-icon">🔗</view>
+          <view class="link-url">{{item.linkUrl}}</view>
+        </view>
+        
+        <!-- 媒体文件网格 -->
+        <view class="media-grid" wx:if="{{item.mediaList && item.mediaList.length > 0}}">
+          <view class="media-item" wx:for="{{item.mediaList}}" wx:for-item="media" wx:key="id" bindtap="previewImage" data-urls="{{item.mediaList}}" data-current="{{media.url}}">
+            <image class="media-image" src="{{media.url}}" mode="aspectFill" lazy-load></image>
+          </view>
+        </view>
+        
+        <!-- 反馈栏 -->
+        <view class="reaction-bar">
+          <view class="reactions">
+            <view class="reaction-btn" wx:for="{{reactionTypes}}" wx:key="type" bindtap="toggleReaction" data-content-id="{{item.id}}" data-type="{{item.type}}">
+              <text class="reaction-emoji">{{item.emoji}}</text>
+              <text class="reaction-count">{{item.count > 0 ? item.count : ''}}</text>
+            </view>
+          </view>
+          <view class="share-btn" bindtap="shareContent" data-item="{{item}}">
+            <text>分享</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 无搜索结果 -->
+    <view wx:if="{{searchKeyword && searchResults.length === 0 && !isSearching}}" class="no-results">
+      <view class="empty-icon">😔</view>
+      <view class="empty-text">没有找到相关内容</view>
+      <view class="empty-subtext">试试其他关键词吧</view>
+    </view>
+    
+    <!-- 搜索中 -->
+    <view wx:if="{{isSearching}}" class="searching">
+      <view class="loading-icon">⏳</view>
+      <view class="loading-text">搜索中...</view>
+    </view>
+  </scroll-view>
+</view> 

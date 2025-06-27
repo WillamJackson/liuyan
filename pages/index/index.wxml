@@ -1,0 +1,73 @@
+<!--index.wxml-->
+<view class="container">
+  <!-- 状态栏占位 -->
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+  
+  <!-- 内容区域 -->
+  <scroll-view class="content-area" scroll-y="true" refresher-enabled="true" bindrefresherrefresh="onRefresh" refresher-triggered="{{refreshing}}" enable-back-to-top="true" scroll-with-animation="true">
+    <view class="content-list">
+      <!-- 内容卡片列表 -->
+      <view class="content-card" wx:for="{{contentList}}" wx:key="id">
+        <!-- 卡片头部 -->
+        <view class="content-header">
+          <view class="content-type">{{item.typeIcon}} {{item.typeName}}</view>
+          <view class="content-time">{{item.timeText}}</view>
+        </view>
+        
+        <!-- 标题 -->
+        <view class="content-title">{{item.title}}</view>
+        
+        <!-- 正文内容 -->
+        <rich-text class="content-text" nodes="{{item.content}}"></rich-text>
+        
+        <!-- 链接卡片（如果有） -->
+        <view class="link-card" wx:if="{{item.linkUrl}}" bindtap="openLink" data-url="{{item.linkUrl}}">
+          <view class="link-icon">🔗</view>
+          <view class="link-url">{{item.linkUrl}}</view>
+        </view>
+        
+        <!-- 媒体文件网格 -->
+        <view class="media-grid" wx:if="{{item.mediaList && item.mediaList.length > 0}}">
+          <view class="media-item" wx:for="{{item.mediaList}}" wx:for-item="media" wx:key="id" bindtap="previewImage" data-urls="{{item.mediaList}}" data-current="{{media.url}}">
+            <image class="media-image" src="{{media.url}}" mode="aspectFill" lazy-load></image>
+          </view>
+        </view>
+        
+        <!-- 反馈栏 -->
+        <view class="reaction-bar">
+          <view class="reactions">
+            <view class="reaction-btn" wx:for="{{reactionTypes}}" wx:key="type" bindtap="toggleReaction" data-content-id="{{item.id}}" data-type="{{item.type}}">
+              <text class="reaction-emoji">{{item.emoji}}</text>
+              <text class="reaction-count">{{item.count > 0 ? item.count : ''}}</text>
+            </view>
+          </view>
+          <view class="share-btn" bindtap="shareContent" data-item="{{item}}">
+            <text class="iconfont icon-share">分享</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 加载状态 -->
+    <view class="load-more" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+    
+    <!-- 加载更多 -->
+    <view class="load-more" wx:elif="{{hasMore}}">
+      <text>加载更多...</text>
+    </view>
+    
+    <!-- 没有更多数据 -->
+    <view class="load-more" wx:elif="{{contentList.length > 0}}">
+      <text>没有更多内容了</text>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && contentList.length === 0}}">
+      <view class="empty-icon">📝</view>
+      <view class="empty-text">暂无内容</view>
+      <view class="empty-subtext">下拉刷新试试看</view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识分享 - 首页</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        *::-webkit-scrollbar {
+            display: none;
+        }
+        body {
+            overflow: hidden;
+        }
+        .phone-mockup {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+        .status-bar {
+            height: 44px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .content-area {
+            height: calc(100% - 44px - 83px);
+            background: white;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .content-area::-webkit-scrollbar {
+            display: none;
+        }
+        .bottom-nav {
+            height: 83px;
+            background: white;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 34px;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .nav-item.active {
+            color: #667eea;
+        }
+        .content-card {
+            background: white;
+            border-radius: 16px;
+            margin: 12px 16px;
+            padding: 20px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            border: 1px solid #f5f5f5;
+        }
+        .content-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .content-type {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .content-time {
+            color: #999;
+            font-size: 12px;
+        }
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 16px 0;
+        }
+        .media-item {
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .reaction-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .reactions {
+            display: flex;
+            gap: 16px;
+        }
+        .reaction-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .reaction-btn:hover {
+            background: #e9ecef;
+        }
+        .share-btn {
+            color: #667eea;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="phone-mockup">
+        <div class="screen">
+            <!-- 状态栏 -->
+            <div class="status-bar">
+                <div>9:41</div>
+                <div class="flex items-center gap-1">
+                    <i class="fas fa-signal text-sm"></i>
+                    <i class="fas fa-wifi text-sm"></i>
+                    <i class="fas fa-battery-full text-sm"></i>
+                </div>
+            </div>
+            
+            <!-- 内容区域 -->
+            <div class="content-area">
+                <!-- 内容卡片1 - 博客类型 -->
+                <div class="content-card">
+                    <div class="content-header">
+                        <span class="content-type">📝 博客</span>
+                        <span class="content-time">2小时前</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">提升工作效率的10个小技巧</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        在快节奏的工作环境中，掌握一些实用的效率技巧能让你事半功倍。今天分享几个我在实践中总结的方法：<br><br>
+                        <strong>1. 时间块管理法</strong><br>
+                        将一天的工作时间划分为不同的时间块，每个时间块专注处理特定类型的任务。这样可以减少任务切换带来的效率损失。<br><br>
+                        <strong>2. 二八定律的应用</strong><br>
+                        识别出20%的关键任务，这些任务能产生80%的价值。优先处理这些高价值任务。<br><br>
+                        <strong>3. 番茄工作法</strong><br>
+                        每25分钟为一个工作周期，专注工作25分钟后休息5分钟。这种方法可以帮助维持高度专注。
+                    </p>
+                    <div class="media-grid">
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=200&h=200&fit=crop" alt="效率工具" class="w-full h-full object-cover">
+                        </div>
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=200&h=200&fit=crop" alt="工作场景" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="reaction-bar">
+                        <div class="reactions">
+                            <button class="reaction-btn">
+                                <span>👍</span>
+                                <span class="text-xs text-gray-600">12</span>
+                            </button>
+                            <button class="reaction-btn">
+                                <span>❤️</span>
+                                <span class="text-xs text-gray-600">8</span>
+                            </button>
+                            <button class="reaction-btn">
+                                <span>💡</span>
+                                <span class="text-xs text-gray-600">5</span>
+                            </button>
+                        </div>
+                        <button class="share-btn">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 内容卡片2 - 网址类型 -->
+                <div class="content-card">
+                    <div class="content-header">
+                        <span class="content-type">🔗 网址</span>
+                        <span class="content-time">4小时前</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">GitHub Copilot 使用指南</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        详细介绍如何使用 GitHub Copilot 提升编程效率，包含实用技巧和最佳实践。
+                    </p>
+                    <div class="bg-blue-50 border border-blue-200 rounded-12 p-3 mb-4">
+                        <div class="flex items-center gap-2 text-blue-600 text-sm">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>github.com/features/copilot</span>
+                        </div>
+                    </div>
+                    <div class="reaction-bar">
+                        <div class="reactions">
+                            <button class="reaction-btn">
+                                <span>👍</span>
+                                <span class="text-xs text-gray-600">24</span>
+                            </button>
+                            <button class="reaction-btn">
+                                <span>📚</span>
+                                <span class="text-xs text-gray-600">15</span>
+                            </button>
+                            <button class="reaction-btn">
+                                <span>🤔</span>
+                                <span class="text-xs text-gray-600">3</span>
+                            </button>
+                        </div>
+                        <button class="share-btn">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 内容卡片3 - 长文档类型 -->
+                <div class="content-card">
+                    <div class="content-header">
+                        <span class="content-type">📄 文档</span>
+                        <span class="content-time">6小时前</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">2024年AI工具使用报告</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        <strong>摘要：</strong>本报告深入分析了2024年人工智能工具在各行业的应用现状，为企业和个人提供实用的AI工具选择指南。<br><br>
+                        
+                        <strong>一、ChatGPT类工具</strong><br>
+                        ChatGPT、Claude、文心一言等对话式AI工具已成为知识工作者的重要助手。在内容创作、代码编程、数据分析等场景表现出色。<br><br>
+                        
+                        <strong>二、图像生成工具</strong><br>
+                        Midjourney、DALL-E、Stable Diffusion在创意设计领域应用广泛，大幅提升了设计效率。<br><br>
+                        
+                        <strong>三、代码辅助工具</strong><br>
+                        GitHub Copilot、CodeWhisperer等工具让程序员编程效率提升30-50%。<br><br>
+                        
+                        <strong>四、使用建议</strong><br>
+                        1. 选择适合自己工作场景的AI工具<br>
+                        2. 学习正确的提示词技巧<br>
+                        3. 保持对新工具的关注和学习<br>
+                        4. 注意数据安全和隐私保护
+                    </p>
+                    <div class="media-grid">
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" alt="AI报告图表" class="w-full h-full object-cover">
+                        </div>
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=200&h=200&fit=crop" alt="数据分析" class="w-full h-full object-cover">
+                        </div>
+                        <div class="media-item">
+                            <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200&h=200&fit=crop" alt="AI工具界面" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="reaction-bar">
+                        <div class="reactions">
+                            <button class="reaction-btn">
+                                <span>👍</span>
+                                <span class="text-xs text-gray-600">42</span>
+                            </button>
+                            <button class="reaction-btn">
+                                <span>📚</span>
+                                <span class="text-xs text-gray-600">28</span>
+                            </button>
+                            <button class="reaction-btn">
+                                <span>💡</span>
+                                <span class="text-xs text-gray-600">15</span>
+                            </button>
+                        </div>
+                        <button class="share-btn">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 底部导航 -->
+            <div class="bottom-nav">
+                <div class="nav-item active">
+                    <i class="fas fa-home text-lg"></i>
+                    <span class="text-xs">首页</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-search text-lg"></i>
+                    <span class="text-xs">搜索</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
