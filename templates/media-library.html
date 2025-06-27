@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}媒体库 - 内容管理系统{% endblock %}
+
+{% block content %}
+<!-- 页面标题和操作 -->
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900">媒体库</h2>
+        <p class="text-gray-600 mt-1">管理您的图片、视频和文档文件</p>
+    </div>
+</div>
+
+<!-- 工具栏 -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <!-- 文件类型筛选 -->
+        <div class="flex flex-wrap gap-2">
+            <button class="filter-btn px-4 py-2 text-sm font-medium text-white bg-blue-500 border border-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 active" data-filter="">
+                全部
+            </button>
+            <button class="filter-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-filter="images">
+                图片
+            </button>
+            <button class="filter-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-filter="videos">
+                视频
+            </button>
+            <button class="filter-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-filter="documents">
+                文档
+            </button>
+            <button class="filter-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-filter="archives">
+                压缩包
+            </button>
+        </div>
+        
+        <!-- 搜索和上传 -->
+        <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" id="searchInput" placeholder="搜索文件..." 
+                       class="block w-full lg:w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            
+            <button id="batchUploadBtn" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-upload mr-2"></i>
+                批量上传
+            </button>
+            <input type="file" id="batchFileInput" multiple accept="image/*,video/*,.pdf,.doc,.docx,.zip,.rar,.7z" class="hidden">
+            
+            <label for="fileInput" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer">
+                <i class="fas fa-plus mr-2"></i>
+                上传文件
+            </label>
+            <input type="file" id="fileInput" multiple accept="image/*,video/*,.pdf,.doc,.docx,.zip,.rar,.7z" class="hidden">
+        </div>
+    </div>
+    
+    <!-- 统计信息和进度条 -->
+    <div class="flex justify-between items-center mt-4">
+        <span id="mediaStats" class="text-sm text-gray-600">加载中...</span>
+        <div id="uploadProgress" class="hidden flex items-center space-x-3">
+            <div class="bg-gray-200 rounded-full h-2 w-64">
+                <div id="progressBar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <span id="progressText" class="text-xs text-gray-600">上传中...</span>
+        </div>
+    </div>
+</div>
+
+<!-- 拖拽上传区域 -->
+<div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center mb-6 transition-colors hover:border-blue-400 hover:bg-blue-50">
+    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+    <p class="text-gray-600 mb-2">拖拽文件到这里快速上传</p>
+    <p class="text-sm text-gray-500">支持图片、视频、文档和压缩包文件</p>
+</div>
+
+<!-- 文件网格 -->
+<div class="bg-white rounded-xl shadow-sm p-6">
+    <div id="mediaGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <!-- 文件项将通过JavaScript动态加载 -->
+        <div class="col-span-full text-center py-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p class="text-gray-500">加载中...</p>
+        </div>
+    </div>
+    
+    <!-- 分页 -->
+    <div id="pagination" class="flex justify-center items-center space-x-2 mt-6">
+        <!-- 分页按钮将通过JavaScript动态生成 -->
+    </div>
+</div>
+
+<script>
+// 页面加载完成后初始化MediaLibrary
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.CMS && window.CMS.MediaLibrary) {
+        window.CMS.MediaLibrary.init();
+    } else {
+        console.error('MediaLibrary not found');
+    }
+});
+
+// 添加拖拽样式
+const style = document.createElement('style');
+style.textContent = `
+    .drag-over {
+        border-color: #3B82F6 !important;
+        background-color: #EFF6FF !important;
+    }
+    
+    .filter-btn.active {
+        background-color: #3B82F6 !important;
+        color: white !important;
+        border-color: #3B82F6 !important;
+    }
+    
+    .media-item:hover .group-hover\\:opacity-100 {
+        opacity: 1;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .media-item {
+        animation: fadeIn 0.3s ease-out;
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %} 

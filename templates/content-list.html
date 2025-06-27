@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}内容列表 - 内容管理系统{% endblock %}
+
+{% block content %}
+<!-- 页面标题和操作 -->
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900">内容列表</h2>
+        <p class="text-gray-600 mt-1">管理您发布的所有内容</p>
+    </div>
+    <div class="flex space-x-3">
+        <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-download mr-2"></i>导出数据
+        </button>
+        <a href="{{ url_for('main.content_editor') }}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+            <i class="fas fa-plus mr-2"></i>新建内容
+        </a>
+    </div>
+</div>
+
+<!-- 搜索和筛选 -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <form method="GET">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-2">
+                <div class="relative">
+                    <input type="text" name="search" value="{{ search or '' }}" placeholder="搜索标题、内容或标签..." 
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+            </div>
+            <div>
+                <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">所有分类</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if current_category == category.id %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">所有状态</option>
+                    <option value="published" {% if current_status == 'published' %}selected{% endif %}>已发布</option>
+                    <option value="draft" {% if current_status == 'draft' %}selected{% endif %}>草稿</option>
+                    <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>待审核</option>
+                </select>
+            </div>
+        </div>
+        <div class="mt-4 flex justify-end">
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-search mr-2"></i>搜索
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- 内容列表 -->
+<div class="bg-white rounded-xl shadow-sm">
+    {% if contents.items %}
+        <div class="divide-y divide-gray-200">
+            {% for content in contents.items %}
+            <div class="p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-file-alt text-indigo-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-medium text-gray-900">{{ content.title }}</h3>
+                        <p class="text-sm text-gray-500 mt-1">{{ content.content[:100] }}...</p>
+                        <div class="flex items-center space-x-4 mt-2">
+
+                            {% if content.media_count > 0 %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                <i class="fas fa-image mr-1"></i>{{ content.media_count }}个媒体
+                            </span>
+                            {% endif %}
+                            {% if content.category %}
+                            <span class="text-xs text-gray-500">{{ content.category.name }}</span>
+                            {% endif %}
+                            <span class="text-xs text-gray-500">{{ content.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            <span class="text-xs text-gray-500">浏览量: {{ content.view_count }}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {% if content.status == 'published' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                            {{ content.status }}
+                        </span>
+                        <div class="flex space-x-1">
+                            <a href="{{ url_for('main.content_editor', id=content.id) }}" class="p-1 text-gray-400 hover:text-indigo-600" title="编辑">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button class="p-1 text-gray-400 hover:text-red-600" onclick="deleteContent({{ content.id }})" title="删除">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="p-8 text-center">
+            <i class="fas fa-file-alt text-gray-300 text-4xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">暂无内容</h3>
+            <p class="text-gray-500 mb-4">您还没有创建任何内容</p>
+            <a href="{{ url_for('main.content_editor') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                <i class="fas fa-plus mr-2"></i>创建内容
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- 分页 -->
+{% if contents.pages > 1 %}
+<div class="mt-6 flex justify-center">
+    <div class="flex space-x-2">
+        {% if contents.has_prev %}
+            <a href="{{ url_for('main.content_list', page=contents.prev_num) }}" class="px-3 py-2 border rounded-lg text-gray-700 hover:bg-gray-50">上一页</a>
+        {% endif %}
+        
+        {% for page_num in contents.iter_pages() %}
+            {% if page_num %}
+                {% if page_num != contents.page %}
+                    <a href="{{ url_for('main.content_list', page=page_num) }}" class="px-3 py-2 border rounded-lg text-gray-700 hover:bg-gray-50">{{ page_num }}</a>
+                {% else %}
+                    <span class="px-3 py-2 bg-indigo-600 text-white rounded-lg">{{ page_num }}</span>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if contents.has_next %}
+            <a href="{{ url_for('main.content_list', page=contents.next_num) }}" class="px-3 py-2 border rounded-lg text-gray-700 hover:bg-gray-50">下一页</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<script>
+// 删除内容函数
+async function deleteContent(contentId) {
+    if (!confirm('确定要删除这篇内容吗？此操作不可恢复。')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/contents/${contentId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // 显示成功提示
+            showNotification('内容删除成功', 'success');
+            // 重新加载页面
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showNotification(result.message || '删除失败，请重试', 'error');
+        }
+    } catch (error) {
+        console.error('删除失败:', error);
+        showNotification('删除失败，请重试', 'error');
+    }
+}
+
+// 显示通知函数
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// 状态切换函数
+async function togglePublish(contentId, currentStatus) {
+    const newStatus = currentStatus === 'published' ? 'draft' : 'published';
+    
+    try {
+        const response = await fetch(`/api/contents/${contentId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification(
+                newStatus === 'published' ? '内容已发布' : '内容已取消发布', 
+                'success'
+            );
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showNotification(result.message || '状态更新失败，请重试', 'error');
+        }
+    } catch (error) {
+        console.error('状态更新失败:', error);
+        showNotification('状态更新失败，请重试', 'error');
+    }
+}
+</script>
+{% endblock %} 

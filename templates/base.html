@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}内容管理系统{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body::-webkit-scrollbar { display: none; }
+        body { -ms-overflow-style: none; scrollbar-width: none; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-blog text-2xl text-indigo-600"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h1 class="text-xl font-semibold text-gray-900">内容管理系统</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-indigo-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- 侧边栏 -->
+        <div class="w-64 bg-white shadow-sm h-screen">
+            <nav class="mt-8">
+                <div class="px-4">
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{{ url_for('main.dashboard') }}" class="text-gray-700 hover:bg-gray-50 group flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                                <i class="fas fa-tachometer-alt mr-3"></i>仪表盘
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('main.content_list') }}" class="text-gray-700 hover:bg-gray-50 group flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                                <i class="fas fa-list mr-3"></i>内容列表
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('main.content_editor') }}" class="text-gray-700 hover:bg-gray-50 group flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                                <i class="fas fa-edit mr-3"></i>发布内容
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('main.media_library') }}" class="text-gray-700 hover:bg-gray-50 group flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                                <i class="fas fa-images mr-3"></i>媒体库
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('main.category_management') }}" class="text-gray-700 hover:bg-gray-50 group flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                                <i class="fas fa-tags mr-3"></i>分类管理
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('main.system_settings') }}" class="text-gray-700 hover:bg-gray-50 group flex items-center px-3 py-2 text-sm font-medium rounded-lg">
+                                <i class="fas fa-cog mr-3"></i>系统设置
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <!-- 主内容区域 -->
+        <div class="flex-1 p-8">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-3 rounded {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html> 
